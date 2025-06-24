@@ -1,0 +1,100 @@
+unit uDetailDataMahasiswa;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, DBCtrls, StdCtrls, DB;
+
+type
+  TFormDetailDataMahasiswa = class(TForm)
+    eNIM: TEdit;
+    eNamaLengkap: TEdit;
+    eProgramStudi: TEdit;
+    eFakultas: TEdit;
+    eNomorHP: TEdit;
+    eEmail: TEdit;
+    eAgama: TEdit;
+    eJenisKelamin: TEdit;
+    eTanggalLahir: TEdit;
+    eAlamatDomisili: TMemo;
+    DBImage1: TDBImage;
+    bTutup: TButton;
+
+    procedure bTutupClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    procedure TampilkanDetail(id: Integer);
+  end;
+
+var
+  FormDetailDataMahasiswa: TFormDetailDataMahasiswa;
+
+implementation
+
+uses
+  uDM, uDataMahasiswa;
+
+{$R *.dfm}
+
+procedure TFormDetailDataMahasiswa.bTutupClick(Sender: TObject);
+begin
+  Close;
+end;
+
+procedure TFormDetailDataMahasiswa.FormCreate(Sender: TObject);
+begin
+  // bisa digunakan untuk inisialisasi jika diperlukan
+end;
+
+procedure TFormDetailDataMahasiswa.FormShow(Sender: TObject);
+begin
+  // Menghubungkan DBImage ke foto
+  DataSource1.DataSet := dm.aDataMahasiswa;
+  DBImage1.DataSource := DataSource1;
+  DBImage1.DataField := 'foto';
+
+  // Set semua input ke readonly
+  eNIM.ReadOnly := True;
+  eNamaLengkap.ReadOnly := True;
+  eProgramStudi.ReadOnly := True;
+  eFakultas.ReadOnly := True;
+  eNomorHP.ReadOnly := True;
+  eEmail.ReadOnly := True;
+  eAgama.ReadOnly := True;
+  eJenisKelamin.ReadOnly := True;
+  eTanggalLahir.ReadOnly := True;
+  eAlamatDomisili.ReadOnly := True;
+end;
+
+procedure TFormDetailDataMahasiswa.TampilkanDetail(id: Integer);
+begin
+  with dm.aDataMahasiswa do
+  begin
+    Close;
+    SQL.Clear;
+    SQL.Add('SELECT * FROM mahasiswa WHERE ID = :id');
+    Parameters.ParamByName('id').Value := id;
+    Open;
+
+    if not IsEmpty then
+    begin
+      eNIM.Text := FieldByName('NIM').AsString;
+      eNamaLengkap.Text := FieldByName('NamaLengkap').AsString;
+      eProgramStudi.Text := FieldByName('ProgramStudi').AsString;
+      eFakultas.Text := FieldByName('Fakultas').AsString;
+      eAlamatDomisili.Lines.Text := FieldByName('AlamatDomisili').AsString;
+      eNomorHP.Text := FieldByName('NomorHP').AsString;
+      eEmail.Text := FieldByName('Email').AsString;
+      eAgama.Text := FieldByName('Agama').AsString;
+      eJenisKelamin.Text := FieldByName('JenisKelamin').AsString;
+      eTanggalLahir.Text := FormatDateTime('dd-mm-yyyy', FieldByName('TanggalLahir').AsDateTime);
+    end;
+  end;
+end;
+
+end.
+

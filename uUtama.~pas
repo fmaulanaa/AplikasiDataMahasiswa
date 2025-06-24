@@ -1,0 +1,103 @@
+unit uUtama;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Menus, StdCtrls;
+
+type
+  TfUtama = class(TForm)
+    MainMenu1: TMainMenu;
+    DataMaster1: TMenuItem;
+    DataMAHASISWA1: TMenuItem;
+    ambahDataMahasiswa1: TMenuItem;
+    DownloadData1: TMenuItem;
+    Keluar1: TMenuItem;
+    Label1: TLabel;
+    Label2: TLabel;
+    procedure Keluar1Click(Sender: TObject);
+    procedure DataMAHASISWA1Click(Sender: TObject);
+    procedure ambahDataMahasiswa1Click(Sender: TObject);
+    procedure DownloadData1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fUtama: TfUtama;
+
+implementation
+
+uses uDataMahasiswa, uDataMahasiswaTambah, uDM;
+
+{$R *.dfm}
+
+procedure TfUtama.Keluar1Click(Sender: TObject);
+begin
+Close;
+end;
+
+procedure TfUtama.DataMAHASISWA1Click(Sender: TObject);
+begin
+formDataMahasiswa.ShowModal;
+end;
+
+procedure TfUtama.ambahDataMahasiswa1Click(Sender: TObject);
+begin
+fDataMahasiswaTambah.ShowModal;
+end;
+
+procedure TfUtama.DownloadData1Click(Sender: TObject);
+var
+  ExcelApp, Workbook, Worksheet: OleVariant;
+  RowIndex, ColIndex: Integer;
+  SavePath: string;
+begin
+  if not dm.aDataMahasiswa.Active then
+    dm.aDataMahasiswa.Open;
+
+  try
+    // Buat instance Excel
+    ExcelApp := CreateOleObject('Excel.Application');
+    ExcelApp.Visible := False;
+    Workbook := ExcelApp.Workbooks.Add;
+    Worksheet := Workbook.Worksheets[1];
+
+    // Tulis header kolom
+    for ColIndex := 0 to dm.aDataMahasiswa.FieldCount - 1 do
+    begin
+      Worksheet.Cells[1, ColIndex + 1] := dm.aDataMahasiswa.Fields[ColIndex].FieldName;
+    end;
+
+    // Tulis isi data
+    dm.aDataMahasiswa.First;
+    RowIndex := 2;
+    while not dm.aDataMahasiswa.Eof do
+    begin
+      for ColIndex := 0 to dm.aDataMahasiswa.FieldCount - 1 do
+      begin
+        Worksheet.Cells[RowIndex, ColIndex + 1] := dm.aDataMahasiswa.Fields[ColIndex].AsString;
+      end;
+      Inc(RowIndex);
+      dm.aDataMahasiswa.Next;
+    end;
+
+    // Tentukan lokasi penyimpanan file
+    SavePath := ExtractFilePath(Application.ExeName) + 'DataMahasiswa.xlsx';
+
+    // Simpan file Excel
+    Workbook.SaveAs(SavePath);
+    Workbook.Close(False);
+    ExcelApp.Quit;
+
+    ShowMessage('Data berhasil diekspor ke file Excel (.xlsx): ' + SavePath);
+  except
+    on E: Exception do
+      ShowMessage('Terjadi kesalahan saat ekspor ke Excel: ' + E.Message);
+  end;
+end;
+
+end.
